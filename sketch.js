@@ -1,11 +1,5 @@
 // Stock Contractor Game in p5.js with Bull Scores, Bull Selection, Buck Off, Bull Score-Based Prize Money, Health Recovery, Age in Years and Weeks, Rename, Additional Stats Window, Rival Contractors, Event Results, Top Contractors, and Top Bulls
-
-let currentMode = 'frontPage'; // Start with front page
-let frontPageButtons = [];
-
 let gameState = {
-  
-  
   money: 10000,
   pendingMessage: "", // Add this line
   bulls: [
@@ -81,9 +75,7 @@ let gameState = {
       "Gene Owen": [],
       "Chad Berger": []
     }
-  },
-   showingSaveConfirm: false,
-  showingNewGameConfirm: false
+  }
 };
 
 // Animation variables
@@ -218,105 +210,49 @@ let trainingWindow;
 function setup() {
   createCanvas(800, 600);
   textSize(16);
-  textAlign(CENTER, CENTER);
-
-  // Initialize front page buttons
-  frontPageButtons = [
-    { text: "Start New Game", x: 400, y: 300, w: 200, h: 50 },
-    { text: "Load Game", x: 400, y: 400, w: 200, h: 50 }
-  ];
-
-  // Graphics objects will be initialized when entering game mode
-}
-
-// Function to initialize game state and graphics
-function initializeGame(isNewGame) {
-  if (isNewGame) {
-    let name = prompt("Enter your Stock Contractor name:", "ABC Bucking Bulls");
-    gameState.contractorName = (name && name.trim() !== "") ? name.trim() : "Unnamed Contractor";
-  } // If loading, contractorName comes from saved data
-
-  if (isNewGame) {
-    // Reset bulls only for new game
-    gameState.bulls = [
-      { 
-        name: "Thunderbolt", 
-        overallRating: 80, 
-        health: 100, 
-        value: 5000, 
-        scores: [], 
-        buckOffs: [], 
-        rested: true, 
-        ageWeeks: 260, 
-        weight: 1800, 
-        eventsCompleted: 0, 
-        color: "Black",
-        chuteTemperament: 70,
-        yearlyScores: []
-      },
-      { 
-        name: "Raging Storm", 
-        overallRating: 65, 
-        health: 85, 
-        value: 3000, 
-        scores: [], 
-        buckOffs: [], 
-        rested: true, 
-        ageWeeks: 260, 
-        weight: 1650, 
-        eventsCompleted: 0, 
-        color: "Red",
-        chuteTemperament: 60,
-        yearlyScores: []
-      }
-    ];
-    gameState.money = 10000;
-    gameState.week = 1;
-    gameState.events = [];
-    gameState.message = "Welcome! Manage your bulls and grow your stock contracting business.";
+  textAlign(LEFT);
+  
+  let name = prompt("Enter your Stock Contractor name:", "ABC Bucking Bulls");
+  if (name && name.trim() !== "") {
+    gameState.contractorName = name.trim();
+  } else {
+    gameState.contractorName = "Unnamed Contractor";
   }
-
-  // Initialize rival bulls (for both new and loaded games, unless loaded data overrides)
-  if (isNewGame) {
-    for (let rival of gameState.rivals) {
-      rival.bulls = [];
-      for (let i = 0; i < 6; i++) {
-        let colors = ["Black", "Red", "Brown", "White", "Gray", "Spotted", "Yellow"];
-        let word1 = random(bullNameWords);
-        let word2 = random(bullNameWords);
-        while (word2 === word1) word2 = random(bullNameWords);
-        let bullName = word1 + " " + word2;
-        let overallRating = Math.floor(random(50, 91));
-        let bull = {
-          name: bullName,
-          overallRating: overallRating,
-          health: 100,
-          value: Math.floor(overallRating * 100),
-          scores: [],
-          buckOffs: [],
-          rested: true,
-          ageWeeks: Math.floor(random(156, 364)),
-          weight: Math.floor(random(1500, 2000)),
-          eventsCompleted: 0,
-          color: random(colors),
-          chuteTemperament: Math.floor(random(50, 100)),
-          yearlyScores: []
-        };
-        setInitialTraits(bull);
-        rival.bulls.push(bull);
-      }
+  
+  // Initialize rival bulls
+  for (let rival of gameState.rivals) {
+    for (let i = 0; i < 6; i++) {
+      let colors = ["Black", "Red", "Brown", "White", "Gray", "Spotted", "Yellow"];
+      let word1 = random(bullNameWords);
+      let word2 = random(bullNameWords);
+      while (word2 === word1) word2 = random(bullNameWords);
+      let bullName = word1 + " " + word2;
+      let overallRating = Math.floor(random(50, 91));
+      let bull = {
+        name: bullName,
+        overallRating: overallRating,
+        health: 100,
+        value: Math.floor(overallRating * 100),
+        scores: [],
+        buckOffs: [],
+        rested: true,
+        ageWeeks: Math.floor(random(156, 364)),
+        weight: Math.floor(random(1500, 2000)),
+        eventsCompleted: 0,
+        color: random(colors),
+        chuteTemperament: Math.floor(random(50, 100)),
+        yearlyScores: []
+      };
+      setInitialTraits(bull);
+      rival.bulls.push(bull);
     }
   }
-
-  // Set initial traits for player bulls
+  
+  // Set initial traits for starting bulls
   gameState.bulls.forEach(bull => setInitialTraits(bull));
-
-  // Generate initial event if new game
-  if (isNewGame && gameState.events.length === 0) {
-    generateEvent();
-  }
-
-  // Initialize graphics objects
+  
+  generateEvent();
+  
   statsWindow = createGraphics(300, 440);
   statsWindow.textSize(16);
   statsWindow.textAlign(LEFT);
@@ -353,15 +289,10 @@ function initializeGame(isNewGame) {
   trainingWindow.textSize(16);
   trainingWindow.textAlign(LEFT);
 
-  saveConfirmWindow = createGraphics(300, 150);
-  saveConfirmWindow.textSize(16);
-  saveConfirmWindow.textAlign(LEFT);
-
+  // Initialize animation window
   animationWindow = createGraphics(800, 600);
   animationWindow.textSize(16);
   animationWindow.textAlign(CENTER, CENTER);
-
-  textAlign(LEFT); // Reset for game
 }
 
 
@@ -847,22 +778,6 @@ function enterEvent(bullIndex) {
 // Amended draw function with bull selection fix and restored animation
 function draw() {
   background(220);
-
-  if (currentMode === 'frontPage') {
-    fill(0);
-    textSize(32);
-    text("Stock Contractor Game", width / 2, 100);
-    textSize(16);
-
-    for (let button of frontPageButtons) {
-      fill(200);
-      rectMode(CENTER);
-      rect(button.x, button.y, button.w, button.h, 10);
-      fill(0);
-      text(button.text, button.x, button.y);
-    }
-  } else if (currentMode === 'game') {
-    // Existing game drawing code
   
   fill(0);
   text(`${gameState.contractorName}`, 20, 20);
@@ -911,23 +826,7 @@ function draw() {
   text("V - Event (view last event results)", 40, 540);
   text("C - Top Stock Contractors", 40, 560);
   text("X - Top Bulls", 40, 580);
-  text("Z - Save Game", 40, 600); // Add save control
   
-    // Add save confirmation window
-    if (gameState.showingSaveConfirm) {
-      saveConfirmWindow.background(240);
-      saveConfirmWindow.fill(0);
-      saveConfirmWindow.text("Save current game progress?", 10, 30);
-      saveConfirmWindow.fill(200);
-      saveConfirmWindow.rect(10, 60, 80, 30);
-      saveConfirmWindow.rect(100, 60, 80, 30);
-      saveConfirmWindow.fill(0);
-      saveConfirmWindow.text("Yes", 35, 80);
-      saveConfirmWindow.text("No", 130, 80);
-      
-      image(saveConfirmWindow, width / 2 - saveConfirmWindow.width / 2, height / 2 - saveConfirmWindow.height / 2);
-    }
-    
   if (gameState.selectedBull !== null) {
     let bull = gameState.bulls[gameState.selectedBull];
     let years = Math.floor(bull.ageWeeks / 52);
@@ -1174,273 +1073,217 @@ function draw() {
 }
 
 function mousePressed() {
-  if (currentMode === 'frontPage') {
-    for (let button of frontPageButtons) {
-      if (mouseX > button.x - button.w / 2 && mouseX < button.x + button.w / 2 &&
-          mouseY > button.y - button.h / 2 && mouseY < button.y + button.h / 2) {
-        if (button.text === "Start New Game") {
-          currentMode = 'game';
-          initializeGame(true);
-        } else if (button.text === "Load Game") {
-          const savedGame = localStorage.getItem('stockContractorSave');
-          if (savedGame) {
-            try {
-              gameState = JSON.parse(savedGame);
-              currentMode = 'game';
-              initializeGame(false);
-              gameState.message = "Game loaded successfully!";
-            } catch (e) {
-              alert("Error loading saved game: " + e.message + "\nStarting new game instead.");
-              currentMode = 'game';
-              initializeGame(true);
-            }
-          } else {
-            alert("No saved game found! Starting new game.");
-            currentMode = 'game';
-            initializeGame(true);
-          }
-        }
-      }
+  if (gameState.selectedBull !== null) {
+    let windowX = width / 2 - statsWindow.width / 2;
+    let windowY = height / 2 - statsWindow.height / 2;
+    if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
+        mouseY >= windowY + 400 && mouseY <= windowY + 430) {
+      gameState.selectedBull = null;
+      gameState.message = "Additional stats closed.";
+      return;
     }
-  } else if (currentMode === 'game') {
-    if (gameState.showingSaveConfirm) {
-      let windowX = width / 2 - saveConfirmWindow.width / 2;
-      let windowY = height / 2 - saveConfirmWindow.height / 2;
-      if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
-          mouseY >= windowY + 60 && mouseY <= windowY + 90) {
-        try {
-          localStorage.setItem('stockContractorSave', JSON.stringify(gameState));
-          gameState.message = "Game saved successfully!";
-        } catch (e) {
-          gameState.message = "Failed to save game: " + e.message;
-        }
-        gameState.showingSaveConfirm = false;
-        return;
-      }
-      if (mouseX >= windowX + 100 && mouseX <= windowX + 180 && 
-          mouseY >= windowY + 60 && mouseY <= windowY + 90) {
-        gameState.showingSaveConfirm = false;
-        gameState.message = "Save cancelled.";
-        return;
-      }
-    } // Removed extra brace here
-    else if (gameState.selectedBull !== null) {
-      let windowX = width / 2 - statsWindow.width / 2;
-      let windowY = height / 2 - statsWindow.height / 2;
-      if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
-          mouseY >= windowY + 400 && mouseY <= windowY + 430) {
-        gameState.selectedBull = null;
-        gameState.message = "Additional stats closed.";
-        return;
-      }
-    } else if (gameState.sellingBull && gameState.sellBullIndex !== null) {
-      let windowX = width / 2 - sellConfirmWindow.width / 2;
-      let windowY = height / 2 - sellConfirmWindow.height / 2;
-      if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
-          mouseY >= windowY + 60 && mouseY <= windowY + 90) {
-        sellBull(gameState.sellBullIndex);
-        gameState.sellingBull = false;
-        gameState.sellBullIndex = null;
-        return;
-      }
-      if (mouseX >= windowX + 100 && mouseX <= windowX + 180 && 
-          mouseY >= windowY + 60 && mouseY <= windowY + 90) {
-        gameState.sellingBull = false;
-        gameState.sellBullIndex = null;
-        gameState.message = "Sell cancelled.";
-        return;
-      }
-    } else if (gameState.showingLegends) {
-      let windowX = width / 2 - legendsWindow.width / 2;
-      let windowY = height / 2 - legendsWindow.height / 2;
-      if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
-          mouseY >= windowY + 260 && mouseY <= windowY + 290) {
-        gameState.showingLegends = false;
-        gameState.message = "Legends window closed.";
-        return;
-      }
-    } else if (gameState.showingMarket) {
-      let windowX = width / 2 - marketWindow.width / 2;
-      let windowY = height / 2 - marketWindow.height / 2;
-      if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
-          mouseY >= windowY + 180 && mouseY <= windowY + 210) {
-        gameState.showingMarket = false;
-        gameState.message = "Market window closed.";
-        return;
-      }
-    } else if (gameState.showingAchievements) {
-      let windowX = width / 2 - achievementsWindow.width / 2;
-      let windowY = height / 2 - achievementsWindow.height / 2;
-      if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
-          mouseY >= windowY + 240 && mouseY <= windowY + 270) {
-        gameState.showingAchievements = false;
-        gameState.message = "Achievements window closed.";
-        return;
-      }
-    } else if (gameState.showingEventResults) {
-      let windowX = width / 2 - eventResultsWindow.width / 2;
-      let windowY = height / 2 - eventResultsWindow.height / 2;
-      if (mouseX >= windowX + 20 && mouseX <= windowX + 100 && 
-          mouseY >= windowY + 350 && mouseY <= windowY + 380) {
-        gameState.showingEventResults = false;
-        gameState.message = "Event results closed.";
-        return;
-      }
-    } else if (gameState.showingTopContractors) {
-      let windowX = width / 2 - topContractorsWindow.width / 2;
-      let windowY = height / 2 - topContractorsWindow.height / 2;
-      if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
-          mouseY >= windowY + 180 && mouseY <= windowY + 210) {
-        gameState.showingTopContractors = false;
-        gameState.message = "Top Contractors window closed.";
-        return;
-      }
-    } else if (gameState.showingTopBulls) {
-      let windowX = width / 2 - topBullsWindow.width / 2;
-      let windowY = height / 2 - topBullsWindow.height / 2;
-      if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
-          mouseY >= windowY + 180 && mouseY <= windowY + 210) {
-        gameState.showingTopBulls = false;
-        gameState.message = "Top Bulls window closed.";
-        return;
-      }
-    } else if (gameState.showingTraining && gameState.trainingBullIndex !== null) {
-      let windowX = width / 2 - trainingWindow.width / 2;
-      let windowY = height / 2 - trainingWindow.height / 2;
-      for (let i = 0; i < 10; i++) {
-        if (mouseX >= windowX + 200 && mouseX <= windowX + 280 && 
-            mouseY >= windowY + 30 + i * 20 && mouseY <= windowY + 50 + i * 20) {
-          trainBull(gameState.trainingBullIndex, i + 1);
-          gameState.showingTraining = false;
-          gameState.trainingBullIndex = null;
-          return;
-        }
-      }
-      if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
-          mouseY >= windowY + 360 && mouseY <= windowY + 390) {
+  } else if (gameState.sellingBull && gameState.sellBullIndex !== null) {
+    let windowX = width / 2 - sellConfirmWindow.width / 2;
+    let windowY = height / 2 - sellConfirmWindow.height / 2;
+    if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
+        mouseY >= windowY + 60 && mouseY <= windowY + 90) {
+      sellBull(gameState.sellBullIndex);
+      gameState.sellingBull = false;
+      gameState.sellBullIndex = null;
+      return;
+    }
+    if (mouseX >= windowX + 100 && mouseX <= windowX + 180 && 
+        mouseY >= windowY + 60 && mouseY <= windowY + 90) {
+      gameState.sellingBull = false;
+      gameState.sellBullIndex = null;
+      gameState.message = "Sell cancelled.";
+      return;
+    }
+  } else if (gameState.showingLegends) {
+    let windowX = width / 2 - legendsWindow.width / 2;
+    let windowY = height / 2 - legendsWindow.height / 2;
+    if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
+        mouseY >= windowY + 260 && mouseY <= windowY + 290) {
+      gameState.showingLegends = false;
+      gameState.message = "Legends window closed.";
+      return;
+    }
+  } else if (gameState.showingMarket) {
+    let windowX = width / 2 - marketWindow.width / 2;
+    let windowY = height / 2 - marketWindow.height / 2;
+    if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
+        mouseY >= windowY + 180 && mouseY <= windowY + 210) {
+      gameState.showingMarket = false;
+      gameState.message = "Market window closed.";
+      return;
+    }
+  } else if (gameState.showingAchievements) {
+    let windowX = width / 2 - achievementsWindow.width / 2;
+    let windowY = height / 2 - achievementsWindow.height / 2;
+    if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
+        mouseY >= windowY + 240 && mouseY <= windowY + 270) {
+      gameState.showingAchievements = false;
+      gameState.message = "Achievements window closed.";
+      return;
+    }
+  } else if (gameState.showingEventResults) {
+    let windowX = width / 2 - eventResultsWindow.width / 2;
+    let windowY = height / 2 - eventResultsWindow.height / 2;
+    if (mouseX >= windowX + 20 && mouseX <= windowX + 100 && 
+        mouseY >= windowY + 350 && mouseY <= windowY + 380) {
+      gameState.showingEventResults = false;
+      gameState.message = "Event results closed.";
+      return;
+    }
+  } else if (gameState.showingTopContractors) {
+    let windowX = width / 2 - topContractorsWindow.width / 2;
+    let windowY = height / 2 - topContractorsWindow.height / 2;
+    if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
+        mouseY >= windowY + 180 && mouseY <= windowY + 210) {
+      gameState.showingTopContractors = false;
+      gameState.message = "Top Contractors window closed.";
+      return;
+    }
+  } else if (gameState.showingTopBulls) {
+    let windowX = width / 2 - topBullsWindow.width / 2;
+    let windowY = height / 2 - topBullsWindow.height / 2;
+    if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
+        mouseY >= windowY + 180 && mouseY <= windowY + 210) {
+      gameState.showingTopBulls = false;
+      gameState.message = "Top Bulls window closed.";
+      return;
+    }
+  } else if (gameState.showingTraining && gameState.trainingBullIndex !== null) {
+    let windowX = width / 2 - trainingWindow.width / 2;
+    let windowY = height / 2 - trainingWindow.height / 2;
+    for (let i = 0; i < 10; i++) {
+      if (mouseX >= windowX + 200 && mouseX <= windowX + 280 && 
+          mouseY >= windowY + 30 + i * 20 && mouseY <= windowY + 50 + i * 20) {
+        trainBull(gameState.trainingBullIndex, i + 1);
         gameState.showingTraining = false;
         gameState.trainingBullIndex = null;
-        gameState.message = "Training window closed.";
         return;
       }
-    } else {
-      for (let i = 0; i < gameState.bulls.length; i++) {
-        let y = 140 + i * 20;
-        let nameWidth = textWidth(`${i + 1}. ${gameState.bulls[i].name}`);
-        if (mouseX >= 80 && mouseX <= 80 + nameWidth && mouseY >= y - 16 && mouseY <= y) {
-          gameState.selectedBull = i;
-          gameState.message = `Showing additional stats for ${gameState.bulls[i].name}.`;
-          return;
-        }
+    }
+    if (mouseX >= windowX + 10 && mouseX <= windowX + 90 && 
+        mouseY >= windowY + 360 && mouseY <= windowY + 390) {
+      gameState.showingTraining = false;
+      gameState.trainingBullIndex = null;
+      gameState.message = "Training window closed.";
+      return;
+    }
+  } else {
+    for (let i = 0; i < gameState.bulls.length; i++) {
+      let y = 140 + i * 20;
+      let nameWidth = textWidth(`${i + 1}. ${gameState.bulls[i].name}`);
+      if (mouseX >= 80 && mouseX <= 80 + nameWidth && mouseY >= y - 16 && mouseY <= y) {
+        gameState.selectedBull = i;
+        gameState.message = `Showing additional stats for ${gameState.bulls[i].name}.`;
+        return;
       }
     }
-  } // Closing brace for currentMode === 'game'
-} // Closing brace for function#
-  
+  }
+}
+
 function keyPressed() {
-    if (currentMode === 'game') {
-        if (gameState.selectingBull) {
-            let bullIndex = parseInt(key) - 1;
-            if (bullIndex >= 0 && bullIndex < gameState.bulls.length) {
-                enterEvent(bullIndex);
-                gameState.selectingBull = false;
-            }
-        } else if (gameState.renamingBull) {
-            let bullIndex = parseInt(key) - 1;
-            if (bullIndex >= 0 && bullIndex < gameState.bulls.length) {
-                renameBull(bullIndex);
-                gameState.renamingBull = false;
-            }
-        } else if (gameState.sellingBull) {
-            let bullIndex = parseInt(key) - 1;
-            if (bullIndex >= 0 && bullIndex < gameState.bulls.length) {
-                gameState.sellBullIndex = bullIndex;
-                gameState.message = `Confirm selling ${gameState.bulls[bullIndex].name}?`;
-            }
-        } else if (gameState.showingLegends) {
-            let legendIndex = parseInt(key) - 1;
-            if (legendIndex >= 0 && legendIndex < legendaryBulls.length) {
-                buyLegendaryBull(legendIndex);
-            }
-        } else if (gameState.showingMarket) {
-            let marketIndex = parseInt(key) - 1;
-            if (marketIndex >= 0 && marketIndex < marketBulls.length) {
-                buyMarketBull(marketIndex);
-            }
-        } else if (gameState.showingTraining && gameState.trainingBullIndex === null) {
-            let bullIndex = parseInt(key) - 1;
-            if (bullIndex >= 0 && bullIndex < gameState.bulls.length) {
-                gameState.trainingBullIndex = bullIndex;
-                gameState.message = `Select a trait to train for ${gameState.bulls[bullIndex].name}.`;
-            }
-        } else if (key === 'S' || key === 's') {
-            if (gameState.bulls.length === 0) {
-                gameState.message = "You have no bulls to sell!";
-            } else {
-                gameState.sellingBull = true;
-                gameState.message = "Select bull to sell (1-" + gameState.bulls.length + ")";
-            }
-        } else if (key === 'R' || key === 'r') {
-            if (gameState.bulls.length === 0) {
-                gameState.message = "You have no bulls to rename!";
-            } else {
-                gameState.renamingBull = true;
-                gameState.message = "Choose a bull to rename.";
-            }
-        } else if (key === 'T' || key === 't') {
-            if (gameState.bulls.length === 0) {
-                gameState.message = "You have no bulls to train!";
-            } else {
-                gameState.showingTraining = true;
-                gameState.message = "Select bull to train (1-" + gameState.bulls.length + ")";
-            }
-        } else if (key === 'N' || key === 'n') {
-            nextWeek();
-        } else if (key === 'L' || key === 'l') {
-            if (gameState.bulls.length >= 6) {
-                gameState.message = "You already own the maximum of 6 bulls!";
-            } else {
-                gameState.showingLegends = true;
-                gameState.message = "Select a legendary bull to buy (1-7).";
-            }
-        } else if (key === 'M' || key === 'm') {
-            if (gameState.bulls.length >= 6) {
-                gameState.message = "You already own the maximum of 6 bulls!";
-            } else {
-                gameState.showingMarket = true;
-                gameState.message = "Select a market bull to buy (1-4).";
-            }
-        } else if (key === 'A' || key === 'a') {
-            gameState.showingAchievements = true;
-            gameState.message = "Viewing all-time achievements.";
-        } else if (key === 'E' || key === 'e') {
-            if (gameState.events.length > 0) {
-                if (gameState.bulls.length === 0) {
-                    gameState.message = "You have no bulls to enter!";
-                } else {
-                    gameState.selectingBull = true;
-                    gameState.message = "Choose a bull to enter the event.";
-                }
-            }
-        } else if (key === 'V' || key === 'v') {
-            if (gameState.lastEventResults) {
-                gameState.showingEventResults = true;
-                gameState.message = "Viewing last event results.";
-            } else {
-                gameState.message = "No event results available yet.";
-            }
-        } else if (key === 'C' || key === 'c') {
-            gameState.showingTopContractors = true;
-            gameState.message = "Viewing Top Stock Contractors.";
-        } else if (key === 'X' || key === 'x') {
-            gameState.showingTopBulls = true;
-            gameState.message = "Viewing Top Bulls.";
-        } else if (key === 'Z' || key === 'z') {  // Moved to proper else if level
-            gameState.showingSaveConfirm = true;
-            gameState.message = "Confirm save game?";
-        }
-    }  // Closes if (currentMode === 'game')
-}  // Closes function
+  if (gameState.selectingBull) {
+    let bullIndex = parseInt(key) - 1;
+    if (bullIndex >= 0 && bullIndex < gameState.bulls.length) {
+      enterEvent(bullIndex);
+      gameState.selectingBull = false;
+    }
+  } else if (gameState.renamingBull) {
+    let bullIndex = parseInt(key) - 1;
+    if (bullIndex >= 0 && bullIndex < gameState.bulls.length) {
+      renameBull(bullIndex);
+      gameState.renamingBull = false;
+    }
+  } else if (gameState.sellingBull) {
+    let bullIndex = parseInt(key) - 1;
+    if (bullIndex >= 0 && bullIndex < gameState.bulls.length) {
+      gameState.sellBullIndex = bullIndex;
+      gameState.message = `Confirm selling ${gameState.bulls[bullIndex].name}?`;
+    }
+  } else if (gameState.showingLegends) {
+    let legendIndex = parseInt(key) - 1;
+    if (legendIndex >= 0 && legendIndex < legendaryBulls.length) {
+      buyLegendaryBull(legendIndex);
+    }
+  } else if (gameState.showingMarket) {
+    let marketIndex = parseInt(key) - 1;
+    if (marketIndex >= 0 && marketIndex < marketBulls.length) {
+      buyMarketBull(marketIndex);
+    }
+  } else if (gameState.showingTraining && gameState.trainingBullIndex === null) {
+    let bullIndex = parseInt(key) - 1;
+    if (bullIndex >= 0 && bullIndex < gameState.bulls.length) {
+      gameState.trainingBullIndex = bullIndex;
+      gameState.message = `Select a trait to train for ${gameState.bulls[bullIndex].name}.`;
+    }
+  } else if (key === 'S' || key === 's') {
+    if (gameState.bulls.length === 0) {
+      gameState.message = "You have no bulls to sell!";
+    } else {
+      gameState.sellingBull = true;
+      gameState.message = "Select bull to sell (1-" + gameState.bulls.length + ")";
+    }
+  } else if (key === 'R' || key === 'r') {
+    if (gameState.bulls.length === 0) {
+      gameState.message = "You have no bulls to rename!";
+    } else {
+      gameState.renamingBull = true;
+      gameState.message = "Choose a bull to rename.";
+    }
+  } else if (key === 'T' || key === 't') {
+    if (gameState.bulls.length === 0) {
+      gameState.message = "You have no bulls to train!";
+    } else {
+      gameState.showingTraining = true;
+      gameState.message = "Select bull to train (1-" + gameState.bulls.length + ")";
+    }
+  } else if (key === 'N' || key === 'n') {
+    nextWeek();
+  } else if (key === 'L' || key === 'l') {
+    if (gameState.bulls.length >= 6) {
+      gameState.message = "You already own the maximum of 6 bulls!";
+    } else {
+      gameState.showingLegends = true;
+      gameState.message = "Select a legendary bull to buy (1-7).";
+    }
+  } else if (key === 'M' || key === 'm') {
+    if (gameState.bulls.length >= 6) {
+      gameState.message = "You already own the maximum of 6 bulls!";
+    } else {
+      gameState.showingMarket = true;
+      gameState.message = "Select a market bull to buy (1-4).";
+    }
+  } else if (key === 'A' || key === 'a') {
+    gameState.showingAchievements = true;
+    gameState.message = "Viewing all-time achievements.";
+  } else if (key === 'E' || key === 'e') {
+    if (gameState.events.length > 0) {
+      if (gameState.bulls.length === 0) {
+        gameState.message = "You have no bulls to enter!";
+      } else {
+        gameState.selectingBull = true;
+        gameState.message = "Choose a bull to enter the event.";
+      }
+    }
+  } else if (key === 'V' || key === 'v') {
+    if (gameState.lastEventResults) {
+      gameState.showingEventResults = true;
+      gameState.message = "Viewing last event results.";
+    } else {
+      gameState.message = "No event results available yet.";
+    }
+  } else if (key === 'C' || key === 'c') {
+    gameState.showingTopContractors = true;
+    gameState.message = "Viewing Top Stock Contractors.";
+  } else if (key === 'X' || key === 'x') {
+    gameState.showingTopBulls = true;
+    gameState.message = "Viewing Top Bulls.";
+  }
+}
 
 function calculateOverallRating(bull) {
   return Math.floor(
@@ -1951,4 +1794,4 @@ function nextWeek() {
   }
   
   generateEvent();
-}  }
+}
